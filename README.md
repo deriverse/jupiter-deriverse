@@ -108,4 +108,3 @@ Execute only off chain tests
 cargo test
 ```
 Execute all tests
-# jupiter-deriverse
