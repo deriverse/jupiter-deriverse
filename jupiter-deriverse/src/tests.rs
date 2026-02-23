@@ -2124,6 +2124,11 @@ pub mod tests {
                 "B exchanged: {}",
                 b_balance_after as i64 - b_balance_before as i64
             );
+
+            assert_eq!(
+                a_balance_before as i64 - a_balance_after as i64,
+                in_amount as i64
+            )
         }
 
         #[test]
