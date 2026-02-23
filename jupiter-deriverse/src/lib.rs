@@ -415,7 +415,6 @@ impl Amm for Deriverse {
         let mut client_tokens: i64 = 0;
         let mut client_mints: i64 = 0;
         let mut fees_amount: i64 = 0;
-        // aggregators could request some additional return value for their fees
         let mut swap_fees: i64 = 0;
         let swap_fee_rate = swap_referral_params
             .as_ref()
