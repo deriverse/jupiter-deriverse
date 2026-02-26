@@ -1,5 +1,11 @@
 #[cfg(test)]
 pub mod tests {
+    use std::collections::HashMap;
+
+    use solana_account::Account;
+    use solana_pubkey::Pubkey;
+
+    pub type AccountMap = HashMap<Pubkey, Box<Account>, ahash::RandomState>;
 
     #[cfg(not(feature = "rpc-test"))]
     pub mod integration_tests {
@@ -18,21 +24,25 @@ pub mod tests {
             },
         };
         use jupiter_amm_interface::{
-            AccountMap, Amm, AmmContext, ClockRef, KeyedAccount, QuoteParams, SwapMode,
+            Amm, AmmContext, ClockRef, KeyedAccount, QuoteParams, SwapMode,
         };
         use serde_json::to_value;
-        use solana_sdk::{account::Account, pubkey::Pubkey};
+        use solana_account::Account;
+        use solana_pubkey::Pubkey;
 
         use crate::{
             Deriverse, InstructionBuilderParams, ParamsWrapper, SwapReferralParams,
             helper::get_dec_factor,
             lines_linked_list::Lines,
             orders_linked_list::Orders,
-            tests::tests::integration_tests::config::{TOKEN_A, TOKEN_B},
+            tests::tests::{
+                AccountMap,
+                integration_tests::config::{TOKEN_A, TOKEN_B},
+            },
         };
 
         pub mod config {
-            use solana_sdk::pubkey::Pubkey;
+            use solana_pubkey::Pubkey;
 
             pub struct Token {
                 pub mint: Pubkey,
@@ -131,7 +141,7 @@ pub mod tests {
 
                 account_metas.insert(
                     self.accounts_ctx.community_acc,
-                    default_account_with_object(&header),
+                    Box::new(default_account_with_object(&header)),
                 );
 
                 Ok(())
@@ -172,7 +182,7 @@ pub mod tests {
 
                 account_metas.insert(
                     self.accounts_ctx.lines,
-                    default_account_with_data(lines_acc),
+                    Box::new(default_account_with_data(lines_acc)),
                 );
 
                 let mut ask_orders_acc = bytes_of(&SpotTradeAccountHeaderNonGen {
@@ -186,7 +196,7 @@ pub mod tests {
 
                 account_metas.insert(
                     self.accounts_ctx.ask_orders,
-                    default_account_with_data(ask_orders_acc),
+                    Box::new(default_account_with_data(ask_orders_acc)),
                 );
 
                 let mut bid_orders_acc = bytes_of(&SpotTradeAccountHeaderNonGen {
@@ -200,7 +210,7 @@ pub mod tests {
 
                 account_metas.insert(
                     self.accounts_ctx.bid_orders,
-                    default_account_with_data(bid_orders_acc),
+                    Box::new(default_account_with_data(bid_orders_acc)),
                 );
 
                 Ok(())
@@ -608,31 +618,48 @@ pub mod tests {
 
             accounts_map.insert(
                 deriverse.accounts_ctx.a_token_state_acc,
-                default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                Box::new(default_account_with_data(
+                    bytes_of(&TokenState::zeroed()).to_vec(),
+                )),
             );
             accounts_map.insert(
                 deriverse.accounts_ctx.b_token_state_acc,
-                default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                Box::new(default_account_with_data(
+                    bytes_of(&TokenState::zeroed()).to_vec(),
+                )),
             );
             accounts_map.insert(
                 deriverse.accounts_ctx.instr_header,
-                default_account_with_object(deriverse.instr_header.as_ref()),
+                Box::new(default_account_with_object(deriverse.instr_header.as_ref())),
             );
             accounts_map.insert(
                 deriverse.accounts_ctx.a_mint,
-                default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                Box::new(default_account_with_data(
+                    bytes_of(&TokenState::zeroed()).to_vec(),
+                )),
             );
             accounts_map.insert(
                 deriverse.accounts_ctx.b_mint,
-                default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                Box::new(default_account_with_data(
+                    bytes_of(&TokenState::zeroed()).to_vec(),
+                )),
             );
 
             if let Some(candles) = deriverse.accounts_ctx.candles {
                 let header = CandlesAccountHeader::<0>::zeroed();
                 let header = bytes_of(&header);
-                accounts_map.insert(candles.0, default_account_with_data(header.to_vec()));
-                accounts_map.insert(candles.1, default_account_with_data(header.to_vec()));
-                accounts_map.insert(candles.2, default_account_with_data(header.to_vec()));
+                accounts_map.insert(
+                    candles.0,
+                    Box::new(default_account_with_data(header.to_vec())),
+                );
+                accounts_map.insert(
+                    candles.1,
+                    Box::new(default_account_with_data(header.to_vec())),
+                );
+                accounts_map.insert(
+                    candles.2,
+                    Box::new(default_account_with_data(header.to_vec())),
+                );
             }
 
             let mut new_deriverse = Deriverse::from_keyed_account(
@@ -666,6 +693,8 @@ pub mod tests {
         }
 
         pub mod test_quote_order_book_only {
+
+            use jupiter_amm_interface::FeeMode;
 
             use super::*;
 
@@ -1018,40 +1047,55 @@ pub mod tests {
 
                 accounts_map.insert(
                     deriverse.accounts_ctx.a_token_state_acc,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.b_token_state_acc,
-                    default_account_with_data(
+                    Box::new(default_account_with_data(
                         bytes_of(&TokenState {
                             address: TOKEN_B.mint,
                             ..Zeroable::zeroed()
                         })
                         .to_vec(),
-                    ),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.a_mint,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.b_mint,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
 
                 deriverse.instr_header.last_px = (10.0 * DF) as i64;
 
                 accounts_map.insert(
                     deriverse.accounts_ctx.instr_header,
-                    default_account_with_object(deriverse.instr_header.as_ref()),
+                    Box::new(default_account_with_object(deriverse.instr_header.as_ref())),
                 );
 
                 if let Some(candles) = deriverse.accounts_ctx.candles {
                     let header = CandlesAccountHeader::<0>::zeroed();
                     let header = bytes_of(&header);
-                    accounts_map.insert(candles.0, default_account_with_data(header.to_vec()));
-                    accounts_map.insert(candles.1, default_account_with_data(header.to_vec()));
-                    accounts_map.insert(candles.2, default_account_with_data(header.to_vec()));
+                    accounts_map.insert(
+                        candles.0,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
+                    accounts_map.insert(
+                        candles.1,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
+                    accounts_map.insert(
+                        candles.2,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
                 }
 
                 let mut new_deriverse = Deriverse::from_keyed_account(
@@ -1083,6 +1127,7 @@ pub mod tests {
 
                 let result = deriverse
                     .quote(&QuoteParams {
+                        fee_mode: FeeMode::Normal,
                         amount: 140_000,
                         input_mint: TOKEN_A.mint,
                         output_mint: TOKEN_B.mint,
@@ -1115,6 +1160,7 @@ pub mod tests {
 
                 let result = deriverse
                     .quote(&QuoteParams {
+                        fee_mode: FeeMode::Normal,
                         amount: 140_000,
                         input_mint: TOKEN_A.mint,
                         output_mint: TOKEN_B.mint,
@@ -1141,6 +1187,7 @@ pub mod tests {
 
                 let result = deriverse
                     .quote(&QuoteParams {
+                        fee_mode: FeeMode::Normal,
                         amount: 200_000,
                         input_mint: TOKEN_A.mint,
                         output_mint: TOKEN_B.mint,
@@ -1167,6 +1214,7 @@ pub mod tests {
 
                 let result = deriverse
                     .quote(&QuoteParams {
+                        fee_mode: FeeMode::Normal,
                         amount: 1_400_000_000,
                         input_mint: TOKEN_B.mint,
                         output_mint: TOKEN_A.mint,
@@ -1189,6 +1237,8 @@ pub mod tests {
         }
 
         pub mod test_quote_amm_only {
+            use jupiter_amm_interface::FeeMode;
+
             use super::*;
 
             fn init_deriverse() -> Deriverse {
@@ -1217,40 +1267,55 @@ pub mod tests {
 
                 accounts_map.insert(
                     deriverse.accounts_ctx.a_token_state_acc,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.b_token_state_acc,
-                    default_account_with_data(
+                    Box::new(default_account_with_data(
                         bytes_of(&TokenState {
                             address: TOKEN_B.mint,
                             ..Zeroable::zeroed()
                         })
                         .to_vec(),
-                    ),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.a_mint,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.b_mint,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
 
                 deriverse.instr_header.last_px = (10.0 * DF) as i64;
 
                 accounts_map.insert(
                     deriverse.accounts_ctx.instr_header,
-                    default_account_with_object(deriverse.instr_header.as_ref()),
+                    Box::new(default_account_with_object(deriverse.instr_header.as_ref())),
                 );
 
                 if let Some(candles) = deriverse.accounts_ctx.candles {
                     let header = CandlesAccountHeader::<0>::zeroed();
                     let header = bytes_of(&header);
-                    accounts_map.insert(candles.0, default_account_with_data(header.to_vec()));
-                    accounts_map.insert(candles.1, default_account_with_data(header.to_vec()));
-                    accounts_map.insert(candles.2, default_account_with_data(header.to_vec()));
+                    accounts_map.insert(
+                        candles.0,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
+                    accounts_map.insert(
+                        candles.1,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
+                    accounts_map.insert(
+                        candles.2,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
                 }
 
                 let mut new_deriverse = Deriverse::from_keyed_account(
@@ -1272,6 +1337,7 @@ pub mod tests {
 
                 let result = deriverse
                     .quote(&QuoteParams {
+                        fee_mode: FeeMode::Normal,
                         amount: 140_000,
                         input_mint: TOKEN_A.mint,
                         output_mint: TOKEN_B.mint,
@@ -1304,6 +1370,7 @@ pub mod tests {
 
                 let result = deriverse
                     .quote(&QuoteParams {
+                        fee_mode: FeeMode::Normal,
                         amount: 1_400_000_000,
                         input_mint: TOKEN_B.mint,
                         output_mint: TOKEN_A.mint,
@@ -1331,6 +1398,8 @@ pub mod tests {
         }
 
         pub mod test_order_book_and_amm {
+            use jupiter_amm_interface::FeeMode;
+
             use super::*;
 
             fn init_deriverse() -> Deriverse {
@@ -1612,40 +1681,55 @@ pub mod tests {
 
                 accounts_map.insert(
                     deriverse.accounts_ctx.a_token_state_acc,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.b_token_state_acc,
-                    default_account_with_data(
+                    Box::new(default_account_with_data(
                         bytes_of(&TokenState {
                             address: TOKEN_B.mint,
                             ..Zeroable::zeroed()
                         })
                         .to_vec(),
-                    ),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.a_mint,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
                 accounts_map.insert(
                     deriverse.accounts_ctx.b_mint,
-                    default_account_with_data(bytes_of(&TokenState::zeroed()).to_vec()),
+                    Box::new(default_account_with_data(
+                        bytes_of(&TokenState::zeroed()).to_vec(),
+                    )),
                 );
 
                 deriverse.instr_header.last_px = (10.0 * DF) as i64;
 
                 accounts_map.insert(
                     deriverse.accounts_ctx.instr_header,
-                    default_account_with_object(deriverse.instr_header.as_ref()),
+                    Box::new(default_account_with_object(deriverse.instr_header.as_ref())),
                 );
 
                 if let Some(candles) = deriverse.accounts_ctx.candles {
                     let header = CandlesAccountHeader::<0>::zeroed();
                     let header = bytes_of(&header);
-                    accounts_map.insert(candles.0, default_account_with_data(header.to_vec()));
-                    accounts_map.insert(candles.1, default_account_with_data(header.to_vec()));
-                    accounts_map.insert(candles.2, default_account_with_data(header.to_vec()));
+                    accounts_map.insert(
+                        candles.0,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
+                    accounts_map.insert(
+                        candles.1,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
+                    accounts_map.insert(
+                        candles.2,
+                        Box::new(default_account_with_data(header.to_vec())),
+                    );
                 }
 
                 let mut new_deriverse = Deriverse::from_keyed_account(
@@ -1667,6 +1751,7 @@ pub mod tests {
 
                 let result = deriverse
                     .quote(&QuoteParams {
+                        fee_mode: FeeMode::Normal,
                         amount: 140_000,
                         input_mint: TOKEN_A.mint,
                         output_mint: TOKEN_B.mint,
@@ -1706,6 +1791,7 @@ pub mod tests {
                 //990_000_000
                 let result = deriverse
                     .quote(&QuoteParams {
+                        fee_mode: FeeMode::Normal,
                         amount: 1_400_000_000,
                         input_mint: TOKEN_B.mint,
                         output_mint: TOKEN_A.mint,
@@ -1742,18 +1828,18 @@ pub mod tests {
             types::account_type::{INSTR, SPOT_1M_CANDLES, SPOT_15M_CANDLES, SPOT_DAY_CANDLES},
         };
         use jupiter_amm_interface::{
-            Amm, AmmContext, ClockRef, KeyedAccount, SwapAndAccountMetas, SwapParams,
+            Amm, AmmContext, ClockRef, FeeMode, KeyedAccount, SwapAndAccountMetas, SwapParams,
         };
         use once_cell::sync::Lazy;
         use serde_json::to_value;
-        use solana_client::{rpc_client::RpcClient, rpc_config::CommitmentConfig};
-        use solana_sdk::{
-            instruction::Instruction,
-            pubkey::Pubkey,
-            signature::Keypair,
-            signer::{EncodableKey, Signer},
-            transaction::Transaction,
+        use solana_client::{
+            rpc_client::RpcClient, rpc_config::CommitmentConfig,
+            rpc_response::transaction::Transaction,
         };
+
+        use solana_instruction::Instruction;
+        use solana_keypair::{EncodableKey, Keypair, Signer};
+        use solana_pubkey::Pubkey;
         use spl_associated_token_account::get_associated_token_address_with_program_id;
 
         use crate::{
@@ -1784,7 +1870,7 @@ pub mod tests {
             Lazy::new(|| Keypair::read_from_file("../keys/client-c.json").unwrap());
 
         pub mod config {
-            use solana_sdk::pubkey::Pubkey;
+            use solana_pubkey::Pubkey;
 
             pub const TOKEN_A: Pubkey =
                 Pubkey::from_str_const("CEHfCDDZZcnVUxcvs1fh4ZztcaVqrakb3jfMQK4CPfNs");
@@ -1919,7 +2005,7 @@ pub mod tests {
                 .enumerate()
                 .fold(HashMap::new(), |mut m, (index, account)| {
                     if let Some(account) = account {
-                        m.insert(accounts_to_update[index], account.clone());
+                        m.insert(accounts_to_update[index], Box::new(account.clone()));
                     }
                     m
                 });
@@ -1989,7 +2075,7 @@ pub mod tests {
                 .enumerate()
                 .fold(HashMap::new(), |mut m, (index, account)| {
                     if let Some(account) = account {
-                        m.insert(accounts_to_update[index], account.clone());
+                        m.insert(accounts_to_update[index], Box::new(account.clone()));
                     }
                     m
                 });
@@ -2000,6 +2086,7 @@ pub mod tests {
 
             let quote_result = deriverse
                 .quote(&jupiter_amm_interface::QuoteParams {
+                    fee_mode: FeeMode::Normal,
                     amount: in_amount,
                     input_mint: TOKEN_A,
                     output_mint: TOKEN_B,
@@ -2052,6 +2139,8 @@ pub mod tests {
                 account_metas,
             } = deriverse
                 .get_swap_and_account_metas(&SwapParams {
+                    user: Pubkey::new_unique(),
+                    payer: Pubkey::new_unique(),
                     in_amount,
                     source_mint: TOKEN_A,
                     destination_mint: TOKEN_B,
@@ -2152,7 +2241,7 @@ pub mod tests {
                 .enumerate()
                 .fold(HashMap::new(), |mut m, (index, account)| {
                     if let Some(account) = account {
-                        m.insert(accounts_to_update[index], account.clone());
+                        m.insert(accounts_to_update[index], Box::new(account.clone()));
                     }
                     m
                 });
@@ -2163,6 +2252,7 @@ pub mod tests {
 
             let quote_result = deriverse
                 .quote(&jupiter_amm_interface::QuoteParams {
+                    fee_mode: FeeMode::Normal,
                     amount: in_amount,
                     input_mint: TOKEN_A,
                     output_mint: TOKEN_B,
@@ -2215,6 +2305,8 @@ pub mod tests {
                 account_metas,
             } = deriverse
                 .get_swap_and_account_metas(&SwapParams {
+                    user: Pubkey::new_unique(),
+                    payer: Pubkey::new_unique(),
                     in_amount,
                     source_mint: TOKEN_A,
                     destination_mint: TOKEN_B,
@@ -2366,7 +2458,7 @@ pub mod tests {
                 .enumerate()
                 .fold(HashMap::new(), |mut m, (index, account)| {
                     if let Some(account) = account {
-                        m.insert(accounts_to_update[index], account.clone());
+                        m.insert(accounts_to_update[index], Box::new(account.clone()));
                     }
                     m
                 });
@@ -2377,6 +2469,7 @@ pub mod tests {
 
             let quote_result = deriverse
                 .quote(&jupiter_amm_interface::QuoteParams {
+                    fee_mode: FeeMode::Normal,
                     amount: in_amount,
                     input_mint: TOKEN_A,
                     output_mint: TOKEN_B,
@@ -2437,6 +2530,8 @@ pub mod tests {
                 account_metas,
             } = deriverse
                 .get_swap_and_account_metas(&SwapParams {
+                    user: Pubkey::new_unique(),
+                    payer: Pubkey::new_unique(),
                     in_amount,
                     source_mint: TOKEN_A,
                     destination_mint: TOKEN_B,
