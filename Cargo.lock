@@ -804,8 +804,8 @@ dependencies = [
 
 [[package]]
 name = "drv-macros"
-version = "0.2.32"
-source = "git+ssh://git@github.com/deriverse/drv-smart-contract-common.git?tag=v0.2.32#c4a4d6703a397f99cdccb338790c7a3274241431"
+version = "0.2.34"
+source = "git+ssh://git@github.com/deriverse/drv-smart-contract-common.git?tag=v0.2.34#931e409c61c0a94adda39b8ace2ee31489f6467f"
 dependencies = [
  "lazy_static",
  "proc-macro2",
@@ -815,8 +815,8 @@ dependencies = [
 
 [[package]]
 name = "drv-models"
-version = "0.2.32"
-source = "git+ssh://git@github.com/deriverse/drv-smart-contract-common.git?tag=v0.2.32#c4a4d6703a397f99cdccb338790c7a3274241431"
+version = "0.2.34"
+source = "git+ssh://git@github.com/deriverse/drv-smart-contract-common.git?tag=v0.2.34#931e409c61c0a94adda39b8ace2ee31489f6467f"
 dependencies = [
  "bytemuck",
  "drv-macros",
