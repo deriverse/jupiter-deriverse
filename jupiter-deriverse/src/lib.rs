@@ -436,7 +436,7 @@ impl Amm for Deriverse {
 
                 if line.is_none() {
                     if DeriverseAmm::partial_fill(amm_px, price, OrderSide::Ask) {
-                        exhausted = false;
+                        exhausted = true;
                         let preliminary_qty = amm.get_amm_qty(price, OrderSide::Ask)?;
                         traded_mints = amm.get_amm_sum(preliminary_qty, OrderSide::Ask)?;
                         traded_qty = amm.get_reversed_amm_qty(traded_mints)?;

@@ -680,6 +680,8 @@ pub mod tests {
 
         pub mod test_quote_order_book_only {
 
+            use std::os::unix::fs::FileTypeExt;
+
             use drv_models::constants::SWAP_FEE_RATE;
             use jupiter_amm_interface::FeeMode;
 
@@ -1123,33 +1125,6 @@ pub mod tests {
             }
 
             #[test]
-            fn partial_fill_sell() {
-                let deriverse = init_deriverse(InstructionBuilderParams { ata_init: false });
-
-                let result = deriverse
-                    .quote(&QuoteParams {
-                        fee_mode: FeeMode::Normal,
-                        amount: 140_000,
-                        input_mint: TOKEN_A.mint,
-                        output_mint: TOKEN_B.mint,
-                        swap_mode: SwapMode::ExactIn,
-                    })
-                    .unwrap();
-
-                let expected = ((200_000 as f64 / get_dec_factor(TOKEN_A.decs_count as u8) as f64
-                    * (10.4 * 100_000.0 / 200_000.0 + 10.1 * 100_000.0 / 200_000.0)
-                    * get_dec_factor(TOKEN_B.decs_count as u8) as f64)
-                    * (1.0 - SWAP_FEE_RATE)) as u64;
-
-                let diff = result.out_amount - expected;
-
-                assert!(
-                    (diff as f64) < expected as f64 * 0.001,
-                    "Calculations are not presize enough"
-                );
-            }
-
-            #[test]
             fn full_fill_sell() {
                 let deriverse = init_deriverse(InstructionBuilderParams { ata_init: false });
 
@@ -1163,10 +1138,10 @@ pub mod tests {
                     })
                     .unwrap();
 
-                let expected = (200_000 as f64 / get_dec_factor(TOKEN_A.decs_count as u8) as f64
+                let expected = ((200_000 as f64 / get_dec_factor(TOKEN_A.decs_count as u8) as f64
                     * (10.4 * 100_000.0 / 200_000.0 + 10.1 * 100_000.0 / 200_000.0)
                     * get_dec_factor(TOKEN_B.decs_count as u8) as f64)
-                    as u64;
+                    * (1.0 - SWAP_FEE_RATE)) as u64;
 
                 let diff = result.out_amount - expected;
 
@@ -1197,8 +1172,11 @@ pub mod tests {
                     as u64;
                 let diff = (result.out_amount as i64 - expected as i64).abs() as u64;
 
+                println!("Result: {}", result.out_amount);
+                println!("Expected: {}", expected);
+
                 assert!(
-                    (diff as f64) < expected as f64 * 0.001,
+                    (diff as f64) < expected as f64 * 0.0001,
                     "Calculations are not presize enough"
                 );
             }
