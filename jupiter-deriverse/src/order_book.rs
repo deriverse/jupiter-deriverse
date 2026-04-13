@@ -31,31 +31,31 @@ pub struct OrderBook {
 impl OrderBook {
     pub fn new(
         instr_header: &InstrAccountHeader,
-        lines_acc: &impl ReadableAccount,
-        bid_orders: &impl ReadableAccount,
-        ask_orders: &impl ReadableAccount,
+        lines_acc: impl ReadableAccount,
+        bid_orders: impl ReadableAccount,
+        ask_orders: impl ReadableAccount,
     ) -> Self {
-        let lines = if lines_acc.data.len() <= SPOT_TRADE_ACCOUNT_HEADER_SIZE {
+        let lines = if lines_acc.data().len() <= SPOT_TRADE_ACCOUNT_HEADER_SIZE {
             vec![]
         } else {
             Lines::new_lines(cast_slice(
-                &lines_acc.data.as_slice()[SPOT_TRADE_ACCOUNT_HEADER_SIZE..],
+                &lines_acc.data()[SPOT_TRADE_ACCOUNT_HEADER_SIZE..],
             ))
         };
 
-        let bid_orders = if bid_orders.data.len() <= SPOT_TRADE_ACCOUNT_HEADER_SIZE {
+        let bid_orders = if bid_orders.data().len() <= SPOT_TRADE_ACCOUNT_HEADER_SIZE {
             vec![]
         } else {
             Orders::new_orders(cast_slice(
-                &bid_orders.data.as_slice()[SPOT_TRADE_ACCOUNT_HEADER_SIZE..],
+                &bid_orders.data()[SPOT_TRADE_ACCOUNT_HEADER_SIZE..],
             ))
         };
 
-        let ask_orders = if ask_orders.data.len() <= SPOT_TRADE_ACCOUNT_HEADER_SIZE {
+        let ask_orders = if ask_orders.data().len() <= SPOT_TRADE_ACCOUNT_HEADER_SIZE {
             vec![]
         } else {
             Orders::new_orders(cast_slice(
-                &ask_orders.data.as_slice()[SPOT_TRADE_ACCOUNT_HEADER_SIZE..],
+                &ask_orders.data()[SPOT_TRADE_ACCOUNT_HEADER_SIZE..],
             ))
         };
 
