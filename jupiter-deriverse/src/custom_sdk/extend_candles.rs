@@ -51,7 +51,7 @@ impl ExtendCandlesBuilder {
                 AccountMeta {
                     pubkey: solana_system_interface::program::id(),
                     is_signer: false,
-                    is_writable: true,
+                    is_writable: false,
                 },
             ],
         )

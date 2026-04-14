@@ -716,14 +716,19 @@ impl Amm for Deriverse {
             client_mints = client_mints.checked_sub_capped(total_fees.add(swap_fees))?;
         }
 
+        let fee_pct = if client_mints == 0 {
+            Decimal::from(0)
+        } else {
+            Decimal::from(total_fees.value + swap_fees.value) / Decimal::from(client_mints.value)
+        };
+
         if buy {
             Ok(Quote {
                 in_amount: (-client_mints.value) as u64,
                 out_amount: client_tokens.value as u64,
                 fee_amount: (total_fees.value + swap_fees.value) as u64,
                 fee_mint: b_token_state.address,
-                fee_pct: Decimal::from(total_fees.value + swap_fees.value)
-                    / Decimal::from(-client_mints.value),
+                fee_pct,
             })
         } else {
             Ok(Quote {
@@ -731,8 +736,7 @@ impl Amm for Deriverse {
                 out_amount: client_mints.value as u64,
                 fee_amount: (total_fees.value + swap_fees.value) as u64,
                 fee_mint: b_token_state.address,
-                fee_pct: Decimal::from(total_fees.value + swap_fees.value)
-                    / Decimal::from(client_mints.value),
+                fee_pct,
             })
         }
     }
