@@ -706,6 +706,7 @@ impl Amm for Deriverse {
 
                 break;
             }
+
             client_tokens = client_tokens.checked_sub_capped(input_amount.sub(remaining_qty))?;
             client_mints = client_mints.checked_add_capped(sum)?;
 
